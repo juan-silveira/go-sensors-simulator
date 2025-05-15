@@ -5,7 +5,7 @@
   "storage_interval": 5000000000,
   "enable_mqtt": true,
   "enable_opcua": true,
-  "enable_vpn": true,
+  "enable_vpn": false,
   "enable_csv_store": true,
   "sensors": [
     {
