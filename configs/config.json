@@ -1,0 +1,76 @@
+{
+  "server_port": 8080,
+  "data_dir": "./data",
+  "simulation_rate": 1000000000,
+  "storage_interval": 5000000000,
+  "enable_mqtt": true,
+  "enable_opcua": true,
+  "enable_vpn": true,
+  "enable_csv_store": true,
+  "sensors": [
+    {
+      "id": "temp001",
+      "type": "temperature",
+      "min_value": 18.0,
+      "max_value": 30.0,
+      "noise_amplitude": 0.3,
+      "unit": "°C"
+    },
+    {
+      "id": "hum001",
+      "type": "humidity",
+      "min_value": 40.0,
+      "max_value": 75.0,
+      "noise_amplitude": 1.0,
+      "unit": "%"
+    },
+    {
+      "id": "light001",
+      "type": "light",
+      "min_value": 0.0,
+      "max_value": 1000.0,
+      "noise_amplitude": 10.0,
+      "unit": "lux"
+    },
+    {
+      "id": "press001",
+      "type": "pressure",
+      "min_value": 990.0,
+      "max_value": 1020.0,
+      "noise_amplitude": 0.5,
+      "unit": "hPa"
+    }
+  ],
+  "mqtt": {
+    "broker_url": "tcp://100.97.199.121:1883",
+    "client_id": "cannabis-sensor-sim",
+    "username": "",
+    "password": "",
+    "topic_base": "cannabis/sensors",
+    "qos": 1,
+    "retained": false,
+    "ca_cert_path": ""
+  },
+  "opcua": {
+    "endpoint": "opc.tcp://juan-FP750:53530/OPCUA/SimulationServer",
+    "policy": "None",
+    "mode": "None",
+    "certificate": "",
+    "private_key": "",
+    "username": "",
+    "password": "",
+    "namespace": 3,
+    "mapping_mode": "prosys-read"
+  },
+  "wireguard": {
+    "interface_name": "wg0",
+    "private_key": "",
+    "public_key": "",
+    "address": "10.0.0.1/24",
+    "listen_port": 51820,
+    "peer_public_key": "",
+    "peer_endpoint": "exemplo.com:51820",
+    "allowed_ips": "10.0.0.0/24",
+    "config_path": "/etc/wireguard/wg0.conf"
+  }
+} 

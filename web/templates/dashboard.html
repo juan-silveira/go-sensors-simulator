@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Cannabis Sensor Simulator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #198754;
+            color: white;
+            border-top-left-radius: 10px !important;
+            border-top-right-radius: 10px !important;
+            font-weight: 600;
+        }
+        .sensor-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+        .sensor-unit {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .header-icon {
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            color: #198754 !important;
+        }
+        .chart-container {
+            height: 350px;
+            margin-bottom: 20px;
+        }
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff !important;
+        }
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .status-ok {
+            background-color: #198754;
+        }
+        .status-warning {
+            background-color: #ffc107;
+        }
+        .status-error {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-flower3" viewBox="0 0 16 16">
+                    <path d="M11.424 8c.437-.052.811-.136 1.04-.268a2 2 0 0 0-2-3.464c-.229.132-.489.414-.752.767C9.886 4.63 10 4.264 10 4a2 2 0 1 0-4 0c0 .264.114.63.288 1.035-.263-.353-.523-.635-.752-.767a2 2 0 0 0-2 3.464c.229.132.603.216 1.04.268-.437.052-.811.136-1.04.268a2 2 0 1 0 2 3.464c.229-.132.489-.414.752-.767C6.114 11.37 6 11.736 6 12a2 2 0 1 0 4 0c0-.264-.114-.63-.288-1.035.263.353.523.635.752.767a2 2 0 0 0 2-3.464c-.229-.132-.603-.216-1.04-.268zM12 16a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM0 8a2 2 0 1 0 4 0 2 2 0 0 0-4 0zm0 8a2 2 0 1 0 4 0 2 2 0 0 0-4 0zm8-4a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8-4a2 2 0 1 0-4 0 2 2 0 0 0 4 0z"/>
+                </svg>
+                Simulador de Sensores - Cultivo de Cannabis
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <span class="status-indicator status-ok" id="mqtt-status"></span>
+                    <span class="small">MQTT</span>
+                </div>
+                <div class="me-3">
+                    <span class="status-indicator status-ok" id="opcua-status"></span>
+                    <span class="small">OPC-UA</span>
+                </div>
+                <div>
+                    <span class="status-indicator status-ok" id="vpn-status"></span>
+                    <span class="small">VPN</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="mb-4">Monitoramento em Tempo Real</h2>
+        <div class="alert alert-info">
+            <p>Este é o template de fallback. Para usar o template Templ completo, execute <code>templ generate</code>.</p>
+        </div>
+        
+        <div class="row" id="sensors-container">
+            <!-- Sensores serão inseridos aqui via JavaScript -->
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Temperatura e Umidade</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="temp-humid-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Luminosidade e Pressão</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="light-pressure-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">Histórico de Leituras</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="history-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+        // Código para criar cards de sensores dinâmicamente
+        async function loadSensors() {
+            try {
+                const response = await fetch('/api/sensors');
+                if (response.ok) {
+                    const sensors = await response.json();
+                    const container = document.getElementById('sensors-container');
+                    
+                    sensors.forEach(sensor => {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-3';
+                        
+                        let icon = '';
+                        let title = '';
+                        
+                        // Escolher ícone e título baseado no tipo de sensor
+                        switch(sensor.type) {
+                        case 'temperature':
+                            icon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-thermometer-half" viewBox="0 0 16 16"><path d="M9.5 12.5a1.5 1.5 0 1 1-2-1.415V6.5a.5.5 0 0 1 1 0v4.585a1.5 1.5 0 0 1 1 1.415z"/><path d="M5.5 2.5a2.5 2.5 0 0 1 5 0v7.55a3.5 3.5 0 1 1-5 0V2.5zM8 1a1.5 1.5 0 0 0-1.5 1.5v7.987l-.167.15a2.5 2.5 0 1 0 3.333 0l-.166-.15V2.5A1.5 1.5 0 0 0 8 1z"/></svg>';
+                            title = 'Temperatura';
+                            break;
+                        case 'humidity':
+                            icon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moisture" viewBox="0 0 16 16"><path d="M13.5 0a.5.5 0 0 0 0 1H15v2.75h-.5a.5.5 0 0 0 0 1h.5V7.5h-1.5a.5.5 0 0 0 0 1H15v2.75h-.5a.5.5 0 0 0 0 1h.5V15h-1.5a.5.5 0 0 0 0 1h2a.5.5 0 0 0 .5-.5V.5a.5.5 0 0 0-.5-.5h-2zM7 1.5l.364-.343a.5.5 0 0 0-.728 0l.364.343zm-2.5 8.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-.5-.5zm2 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-.5-.5zm2 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-.5-.5zm2 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-.5-.5zM1.654 8.999A5.002 5.002 0 0 1 6 4c.776 0 1.52.17 2.2.479l.207-.455A5.999 5.999 0 0 0 6 3c-2.48 0-4.616 1.51-5.52 3.659l.62.811c.75.98 1.78 1.53 2.9 1.53 1.23 0 2.37-.62 3.04-1.67l-.3-.6a3.5 3.5 0 0 1-2.74 1.27c-.73 0-1.41-.38-1.79-1.01z"/></svg>';
+                            title = 'Umidade';
+                            break;
+                        case 'light':
+                            icon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-brightness-high" viewBox="0 0 16 16"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/></svg>';
+                            title = 'Luminosidade';
+                            break;
+                        case 'pressure':
+                            icon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-speedometer" viewBox="0 0 16 16"><path d="M8 2a.5.5 0 0 1 .5.5V4a.5.5 0 0 1-1 0V2.5A.5.5 0 0 1 8 2zM3.732 3.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 8a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 8zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 7.31A.91.91 0 1 0 8.85 8.569l3.434-4.297a.389.389 0 0 0-.029-.518z"/><path fill-rule="evenodd" d="M6.664 15.889A8 8 0 1 1 9.336.11a8 8 0 0 1-2.672 15.78zm-4.665-4.283A11.945 11.945 0 0 1 8 10c2.186 0 4.236.585 6.001 1.606a7 7 0 1 0-12.002 0z"/></svg>';
+                            title = 'Pressão';
+                            break;
+                        }
+                        
+                        col.innerHTML = `
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="header-icon">${icon}</span>
+                                    ${title}
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="sensor-value" id="value-${sensor.type}-${sensor.id}">--</div>
+                                    <div class="sensor-unit">${sensor.unit}</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        container.appendChild(col);
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar sensores:', error);
+            }
+        }
+        
+        // Carregar sensores quando o documento estiver pronto
+        document.addEventListener('DOMContentLoaded', loadSensors);
+    </script>
+</body>
+</html> 
